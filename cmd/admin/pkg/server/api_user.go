@@ -13,6 +13,7 @@ func (server *AdminServer) newUser() echo.HandlerFunc{
 	 return func(c echo.Context) error {
 		var errstr string
 		code := CodeSuccess
+
 		user, err := model.UnMarshalUserFromReader(c.Request().Body())
 		if nil != err {
 			errstr = err.Error()

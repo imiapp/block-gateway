@@ -1,0 +1,30 @@
+<div>
+<div class="table-responsive">
+	<table class="table1 table-bordered table-striped1"
+		style="table-layout: fixed; width: 100%">
+		<tr>
+			<th style="width:30%; height:50px;background-color: #f9f9f9">User Name</th>
+			<td>{{user.username}}</td>
+		</tr>
+		<tr>
+			<th style="height:50px;background-color: #f9f9f9">Pass Word</th>
+			<td>{{user.password}}</td>
+		</tr>
+		<tr>
+			<th style="height:50px;background-color: #f9f9f9">Role Name</th>
+			<td>{{user.rolevalue}}</td>
+		</tr>
+		<tr>
+			<th style="background-color: #f9f9f9"> Public Key</th>
+			<td style="padding:0px;"><textarea rows="1" cols="1" style="word-wrap: break-word ;width:100%;height:100px;">{{user.publicKey}}</textarea></td>
+		</tr>
+		<tr>
+			<th style="background-color: #f9f9f9">Private Key</th>
+			<td style="padding:0px;"><textarea rows="1" cols="1" style="word-wrap: break-word;width:100%;height:200px;">{{user.privateKey}}</textarea></td>
+		</tr>
+	</table>
+</div>
+      <div class="modal-footer" style="text-align: center">
+        <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="close()">Close</button>
+      </div>
+</div>

@@ -32,4 +32,9 @@ func (server *AdminServer) initAPIRoute() {
 
 	server.e.GET("/api/analysis/:proxy/:server/:secs", server.getAnalysis())
 	server.e.POST("/api/analysis", server.newAnalysis())
+	
+	server.e.POST("/api/newUser", server.newUser())
+    server.e.GET("/api/users", server.getUsers())
+    server.e.GET("/api/users/detail/:name", server.getUserDetail())
+    server.e.DELETE("/api/users/:name", server.deleteUser())
 }

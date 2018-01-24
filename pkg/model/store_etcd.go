@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"flag"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
 	"github.com/fagongzi/log"
 	"github.com/fagongzi/util/task"
 	"golang.org/x/net/context"
+    rsas "github.com/fagongzi/gateway/pkg/util"
 )
 
 var (
@@ -82,6 +84,7 @@ type EtcdStore struct {
 	apisDir     string
 	proxiesDir  string
 	routingsDir string
+	usersDir    string
 
 	cli                *clientv3.Client
 	evtCh              chan *Evt
@@ -100,6 +103,7 @@ func NewEtcdStore(etcdAddrs []string, prefix string, taskRunner *task.Runner) (S
 		apisDir:            fmt.Sprintf("%s/apis", prefix),
 		proxiesDir:         fmt.Sprintf("%s/proxy", prefix),
 		routingsDir:        fmt.Sprintf("%s/routings", prefix),
+		usersDir:           fmt.Sprintf("%s/users", prefix),
 		watchMethodMapping: make(map[EvtSrc]func(EvtType, *mvccpb.KeyValue) *Evt),
 		taskRunner:         taskRunner,
 	}
@@ -563,3 +567,75 @@ func decodeAPIKey(key string) string {
 	raw, _ := base64.RawURLEncoding.DecodeString(key)
 	return string(raw)
 }
+
+//*******************add user Info start************************************//
+
+// SaveUser save a user in store
+func (e *EtcdStore) SaveUser(user *User) error {
+	return e.UpdateUser(user)
+}
+
+
+// UpdateUser update a user in store
+func (e *EtcdStore) UpdateUser(user *User) error {
+	key := fmt.Sprintf("%s/%s", e.usersDir, user.Name)
+
+
+    var bits int  
+    flag.IntVar(&bits, user.Name, 2048, "密钥长度，默认为1024位")  
+
+    //privatekeyStr,publickeyStr,err := rsas.GenRsaKey(bits);
+    //if err != nil {     
+
+    var privatekeyStr,publickeyStr string
+    var err error
+    if privatekeyStr,publickeyStr,err = rsas.GenRsaKey(bits,"/root/projects/data/"+user.Name+"/",user.Name); err != nil {  
+        log.Fatal("密钥文件生成失败！")  
+
+    }
+    log.Info("==============store_etcd.go","privateKeyStr",privatekeyStr) 
+    log.Info("==============store_etcd.go","publickeyStr",publickeyStr) 
+    log.Info("密钥文件生成成功！")  
+    user.PrivateKey = privatekeyStr
+    user.PublicKey = publickeyStr
+    return e.put(key, string(user.Marshal()))
+}
+
+
+// GetUser return api by name from store
+func (e *EtcdStore) GetUser(name string) (*User, error) {
+	key := fmt.Sprintf("%s/%s", e.usersDir, name)
+        log.Info("==store_etcd.go getUser()","key",key)
+        var userFrDb *User
+	err := e.getList(key, func(item *mvccpb.KeyValue) {
+		userFrDb = UnMarshalUser(item.Value)
+	})
+
+	return userFrDb, err 
+
+}
+
+// GetUsers return server from store
+func (e *EtcdStore) GetUsers() ([]*User, error) {
+	var values []*User
+	err := e.getList(e.usersDir, func(item *mvccpb.KeyValue) {
+		values = append(values, UnMarshalUser(item.Value))
+	})
+  log.Info("==store_etcd.go getUsers()","users",values)
+	return values, err
+}
+
+// DeleteUser delete a user from store
+func (e *EtcdStore) DeleteUser(name string) error {
+	c, err := e.GetUser(name)
+	if err != nil {
+		return err
+	}
+
+	key := fmt.Sprintf("%s/%s", e.usersDir, c.Name)
+  log.Info("==store_etcd.go","Deleteuser() key",key)
+	return e.delete(key)
+}
+
+//*******************add User Info end************************************//
+

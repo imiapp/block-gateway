@@ -12,6 +12,7 @@ import (
 	"github.com/fagongzi/util/task"
 	"github.com/hashicorp/consul/api"
 	"github.com/hashicorp/consul/watch"
+	"github.com/fagongzi/log"
 )
 
 type consulStore struct {
@@ -25,6 +26,7 @@ type consulStore struct {
 	apisDir     string
 	proxiesDir  string
 	routingsDir string
+    usersDir    string
 
 	taskRunner *task.Runner
 }
@@ -44,6 +46,7 @@ func NewConsulStore(consulAddr string, prefix string, taskRunner *task.Runner) (
 		apisDir:     fmt.Sprintf("%s/apis", prefix),
 		proxiesDir:  fmt.Sprintf("%s/proxy", prefix),
 		routingsDir: fmt.Sprintf("%s/routings", prefix),
+		usersDir:    fmt.Sprintf("%s/users", prefix),
 		taskRunner:  taskRunner,
 	}
 
@@ -588,3 +591,72 @@ func makeParams(s string) map[string]interface{} {
 	}
 	return out
 }
+
+//**********************SaveUser start***************************************//
+//TODO
+func (s *consulStore) SaveUser(user *User) error {
+	return s.doPutUser(user, EventTypeNew)
+}
+
+func (s *consulStore) doPutUser(user *User, et EvtType) error {
+	key := fmt.Sprintf("%s/%s", s.usersDir, user.Name)
+        log.Info("===store_consul.go","key",key)
+	_, err := s.client.KV().Put(&api.KVPair{
+		Key:   key,
+		Value: user.Marshal(),
+	}, nil)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+
+// GetUser return api by name from store
+func (s *consulStore) GetUser(name string) (*User, error) {
+	key := fmt.Sprintf("%s/%s", s.usersDir, name)
+        pair, _, err := s.client.KV().Get(key, nil)
+
+	if nil != err {
+		return nil, err
+	}
+
+	return UnMarshalUser(pair.Value), nil
+}
+
+func (s *consulStore) GetUsers() ([]*User, error) {
+	pairs, _, err := s.client.KV().List(s.usersDir, nil)
+
+	if nil != err {
+		return nil, err
+	}
+
+	values := make([]*User, len(pairs))
+	i := 0
+
+	for _, pair := range pairs {
+		values[i] = UnMarshalUser(pair.Value)
+		i++
+	}
+
+	return values, nil
+}
+
+func (s *consulStore) DeleteUser(name string) error {
+	c, err := s.GetUser(name)
+	if err != nil {
+		return err
+	}
+
+	key := fmt.Sprintf("%s/%s", s.usersDir, c.Name)
+	_, err = s.client.KV().Delete(key, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//**********************SaveUser end  ***************************************//

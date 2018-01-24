@@ -128,6 +128,11 @@ type Store interface {
 	DeleteAPI(url string, method string) error
 	GetAPIs() ([]*API, error)
 	GetAPI(url string, method string) (*API, error)
+	
+	SaveUser(user *User) error  
+    GetUser(userName string) (*User, error) 
+    GetUsers() ([]*User, error)  
+    DeleteUser(name string) error   
 
 	SaveRouting(routing *Routing) error
 	GetRoutings() ([]*Routing, error)

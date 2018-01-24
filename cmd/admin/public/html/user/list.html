@@ -1,0 +1,63 @@
+<h1 class="page-header">Users</h1>
+
+<div>
+    <form style="margin-bottom: 3px;" class="form-inline">
+        <button type="button" class="btn btn-success btn-sm" ng-click="create()">
+            Create
+        </button>
+
+        <label for="search">Search:</label>
+        <input type="text" class="form-control" ng-model="q" id="search" />
+    </form>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped" style="table-layout: fixed; width: 100%">
+        <thead>
+            <tr>
+                <th>User Name</th>
+                <th>Pass Word</th>
+                <th>Role Name</th>
+         	<th>Public Key</th>
+		<th>Private Key</th>
+                <th>Opts</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr ng-repeat="user in users | filter: q">
+                <!-- <td><a href="#/users/{{user.username}}">{{user.username}}</a></td> -->
+              <!--  <td>{{user.username}}</td>
+                <td>{{user.password}}</td>
+		<td>{{user.rolevalue}}</td>
+                <td>
+                    <button type="button" class="btn btn-success btn-sm" ng-click="delete(user.username)">Delete</button>
+                </td> -->
+                <!--<td ng-bind="user.userName"></td>
+		<td ng-bind="user.userName"></td>
+		<td ng-bind="user.userName"></td>
+		<td ng-bind="user.userName"></td> -->
+                <td ng-bind="user.username"></td>
+                <td ng-bind="user.password"></td>
+                <td ng-bind="user.rolevalue"></td>
+		<td ng-bind="user.publicKey |textLengthSet:true:20:'...'" style="word-wrap: break-word;"></td>
+		<td ng-bind="user.privateKey |textLengthSet:true:20:'...'" style="word-wrap: break-word;"></td>
+                <td>
+		 <button type="button" class="btn btn-success btn-sm" ng-click="queryUserDetail(user.username)">Detail</button> 
+                    <button type="button" class="btn btn-success btn-sm" ng-click="delete(user.username)">Delete</button>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <nav>
+		<ul class="pagination">
+			<li><a ng-click="Previous()"> <span>上一页</span></a>
+			</li>
+			<li ng-repeat="page in pageList"
+				ng-class="{active: isActivePage(page)}"><a ng-click="selectPage(page)">{{ page }}</a></li>
+			<li><a ng-click="Next()"> <span>下一页</span></a>
+			</li>
+		</ul>
+   </nav>
+</div>
